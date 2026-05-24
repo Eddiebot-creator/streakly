@@ -99,9 +99,9 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                     const SizedBox(height: 10),
                     Wrap(spacing: 10, runSpacing: 10, children: icons.map((e) => ChoiceChip(label: Text(e, style: const TextStyle(fontSize: 20)), selected: icon == e, onSelected: (_) => setState(() => icon = e))).toList()),
                     const SizedBox(height: 18),
-                    DropdownButtonFormField(value: category, items: categories.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => category = v!), decoration: const InputDecoration(labelText: 'Category')),
+                    DropdownButtonFormField(initialValue: category, items: categories.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => category = v!), decoration: const InputDecoration(labelText: 'Category')),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField(value: frequency, items: frequencies.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => frequency = v!), decoration: const InputDecoration(labelText: 'Frequency')),
+                    DropdownButtonFormField(initialValue: frequency, items: frequencies.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => frequency = v!), decoration: const InputDecoration(labelText: 'Frequency')),
                     const SizedBox(height: 12),
                     AppCard(
                       color: AppColors.card2,
