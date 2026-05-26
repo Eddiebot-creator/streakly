@@ -1,5 +1,5 @@
 name: streakly
-description: A full functioning Android and Windows habit tracker app with Firebase backend.
+description: A polished Flutter habit tracker for Android and Windows with Firebase sync, streaks, statistics, reminders, challenges, and leaderboard progress.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -40,5 +40,5 @@ flutter_launcher_icons:
     image_path: assets/icon/streakly_launcher.png
     icon_size: 48
   image_path: assets/icon/streakly_launcher.png
-  adaptive_icon_background: '#080B18'
+  adaptive_icon_background: '#4F46E5'
   adaptive_icon_foreground: assets/icon/streakly_launcher.png

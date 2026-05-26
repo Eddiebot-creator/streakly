@@ -29,7 +29,8 @@ class Habit {
 
   bool doneToday() => completedDates.contains(dateKey(DateTime.now()));
 
-  static String dateKey(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  static String dateKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   Habit copyWith({
     String? id,
@@ -91,8 +92,15 @@ class Habit {
 
   String toCsvRow() {
     String esc(String v) => '"${v.replaceAll('"', '""')}"';
-    return [title, category, icon, frequency, reminderTime, streak.toString(), bestStreak.toString(), completedDates.length.toString()]
-        .map(esc)
-        .join(',');
+    return [
+      title,
+      category,
+      icon,
+      frequency,
+      reminderTime,
+      streak.toString(),
+      bestStreak.toString(),
+      completedDates.length.toString()
+    ].map(esc).join(',');
   }
 }

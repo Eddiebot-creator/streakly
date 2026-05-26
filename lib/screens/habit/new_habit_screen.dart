@@ -22,8 +22,27 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
   TimeOfDay reminder = const TimeOfDay(hour: 8, minute: 0);
   bool busy = false;
 
-  final categories = const ['Health', 'Fitness', 'Study', 'Work', 'Mindset', 'Finance', 'Personal'];
-  final icons = const ['🔥', '🏃', '📚', '💧', '🧘', '💰', '🎯', '🛌', '💪', '📝'];
+  final categories = const [
+    'Health',
+    'Fitness',
+    'Study',
+    'Work',
+    'Mindset',
+    'Finance',
+    'Personal'
+  ];
+  final icons = const [
+    '🔥',
+    '🏃',
+    '📚',
+    '💧',
+    '🧘',
+    '💰',
+    '🎯',
+    '🛌',
+    '💪',
+    '📝'
+  ];
   final frequencies = const ['Daily', 'Weekdays', 'Weekends', '3x Weekly'];
 
   @override
@@ -48,18 +67,21 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     return TimeOfDay(hour: h, minute: m);
   }
 
-  String _timeString(TimeOfDay t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+  String _timeString(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   Future<void> _save() async {
     if (title.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter habit title')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Enter habit title')));
       return;
     }
     setState(() => busy = true);
     final hp = context.read<HabitProvider>();
     try {
       if (widget.habit == null) {
-        await hp.addHabit(title.text, category, icon, frequency, _timeString(reminder));
+        await hp.addHabit(
+            title.text, category, icon, frequency, _timeString(reminder));
       } else {
         await hp.updateHabit(widget.habit!.copyWith(
           title: title.text.trim(),
@@ -71,18 +93,26 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
       }
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(widget.habit == null ? 'Habit saved' : 'Habit updated')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content:
+              Text(widget.habit == null ? 'Habit saved' : 'Habit updated')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted) {
+        setState(() => busy = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.habit == null ? 'New Habit' : 'Edit Habit')),
+      appBar: AppBar(
+          title: Text(widget.habit == null ? 'New Habit' : 'Edit Habit')),
       body: ListView(
         padding: const EdgeInsets.all(22),
         children: [
@@ -93,26 +123,75 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextField(controller: title, decoration: const InputDecoration(labelText: 'Habit name', prefixIcon: Icon(Icons.edit_outlined))),
+                    TextField(
+                        controller: title,
+                        decoration: const InputDecoration(
+                            labelText: 'Habit name',
+                            prefixIcon: Icon(Icons.edit_outlined))),
                     const SizedBox(height: 18),
-                    const Text('Choose icon', style: TextStyle(fontWeight: FontWeight.w900)),
+                    const Text('Choose icon',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textStrong)),
                     const SizedBox(height: 10),
-                    Wrap(spacing: 10, runSpacing: 10, children: icons.map((e) => ChoiceChip(label: Text(e, style: const TextStyle(fontSize: 20)), selected: icon == e, onSelected: (_) => setState(() => icon = e))).toList()),
+                    Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: icons
+                            .map((e) => ChoiceChip(
+                                label: Text(e,
+                                    style: const TextStyle(fontSize: 20)),
+                                selected: icon == e,
+                                onSelected: (_) => setState(() => icon = e)))
+                            .toList()),
                     const SizedBox(height: 18),
-                    DropdownButtonFormField(initialValue: category, items: categories.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => category = v!), decoration: const InputDecoration(labelText: 'Category')),
+                    DropdownButtonFormField(
+                        initialValue: category,
+                        items: categories
+                            .map((e) =>
+                                DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => category = v!),
+                        decoration:
+                            const InputDecoration(labelText: 'Category')),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField(initialValue: frequency, items: frequencies.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => frequency = v!), decoration: const InputDecoration(labelText: 'Frequency')),
+                    DropdownButtonFormField(
+                        initialValue: frequency,
+                        items: frequencies
+                            .map((e) =>
+                                DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => frequency = v!),
+                        decoration:
+                            const InputDecoration(labelText: 'Frequency')),
                     const SizedBox(height: 12),
                     AppCard(
                       color: AppColors.card2,
                       onTap: () async {
-                        final t = await showTimePicker(context: context, initialTime: reminder);
-                        if (t != null) setState(() => reminder = t);
+                        final t = await showTimePicker(
+                            context: context, initialTime: reminder);
+                        if (t != null) {
+                          setState(() => reminder = t);
+                        }
                       },
-                      child: Row(children: [const Icon(Icons.alarm, color: AppColors.yellow), const SizedBox(width: 12), Expanded(child: Text('Reminder: ${_timeString(reminder)}')), const Icon(Icons.edit, size: 18)]),
+                      child: Row(children: [
+                        const Icon(Icons.alarm, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text('Reminder: ${_timeString(reminder)}',
+                                style: const TextStyle(
+                                    color: AppColors.textStrong))),
+                        const Icon(Icons.edit, size: 18, color: AppColors.muted)
+                      ]),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton(onPressed: busy ? null : _save, child: busy ? const CircularProgressIndicator() : Text(widget.habit == null ? 'Save Habit' : 'Update Habit')),
+                    ElevatedButton(
+                        onPressed: busy ? null : _save,
+                        child: busy
+                            ? const CircularProgressIndicator()
+                            : Text(widget.habit == null
+                                ? 'Save Habit'
+                                : 'Update Habit')),
                   ],
                 ),
               ),

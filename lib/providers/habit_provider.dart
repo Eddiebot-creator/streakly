@@ -33,7 +33,8 @@ class HabitProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addHabit(String title, String category, String icon, String frequency, String reminder) async {
+  Future<void> addHabit(String title, String category, String icon,
+      String frequency, String reminder) async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) throw Exception('You are not logged in.');
@@ -90,7 +91,8 @@ class HabitProvider extends ChangeNotifier {
   }
 
   Future<void> exportCsvToClipboard() async {
-    final csv = StringBuffer('Title,Category,Icon,Frequency,Reminder,Current Streak,Best Streak,Total Completed\n');
+    final csv = StringBuffer(
+        'Title,Category,Icon,Frequency,Reminder,Current Streak,Best Streak,Total Completed\n');
     for (final h in habits) {
       csv.writeln(h.toCsvRow());
     }
@@ -99,8 +101,10 @@ class HabitProvider extends ChangeNotifier {
 
   int get completedToday => habits.where((h) => h.doneToday()).length;
   int get totalStreak => habits.fold(0, (sum, h) => sum + h.streak);
-  int get bestStreak => habits.fold(0, (sum, h) => h.bestStreak > sum ? h.bestStreak : sum);
-  int get totalCompleted => habits.fold(0, (sum, h) => sum + h.completedDates.length);
+  int get bestStreak =>
+      habits.fold(0, (sum, h) => h.bestStreak > sum ? h.bestStreak : sum);
+  int get totalCompleted =>
+      habits.fold(0, (sum, h) => sum + h.completedDates.length);
   double get progress => habits.isEmpty ? 0 : completedToday / habits.length;
 
   List<int> weeklyCompleted() {

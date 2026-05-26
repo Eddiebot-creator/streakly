@@ -24,22 +24,24 @@ class AppCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: gradient == null ? (color ?? AppColors.card) : null,
         gradient: gradient,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: Colors.white.withOpacity(.06)),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.18),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
+            color: Colors.black.withValues(alpha: .05),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: child,
     );
 
-    if (onTap == null) return card;
+    if (onTap == null) {
+      return card;
+    }
     return InkWell(
-      borderRadius: BorderRadius.circular(26),
+      borderRadius: BorderRadius.circular(24),
       onTap: onTap,
       child: card,
     );

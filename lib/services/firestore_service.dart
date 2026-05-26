@@ -24,7 +24,8 @@ class FirestoreService {
   }
 
   Future<List<Habit>> getHabits(String uid) async {
-    final snap = await db.collection('habits').where('userId', isEqualTo: uid).get();
+    final snap =
+        await db.collection('habits').where('userId', isEqualTo: uid).get();
     final habits = snap.docs.map(Habit.fromDoc).toList();
     habits.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return habits;
@@ -94,7 +95,11 @@ class FirestoreService {
   }
 
   Future<List<Map<String, dynamic>>> leaderboard() async {
-    final snap = await db.collection('users').orderBy('totalCompleted', descending: true).limit(20).get();
+    final snap = await db
+        .collection('users')
+        .orderBy('totalCompleted', descending: true)
+        .limit(20)
+        .get();
     return snap.docs.map((d) => {'id': d.id, ...d.data()}).toList();
   }
 }

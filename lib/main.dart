@@ -40,12 +40,10 @@ class StreaklyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Streakly',
-        theme: AppTheme.dark,
+        theme: AppTheme.light,
         home: Consumer<StreaklyAuthProvider>(
           builder: (context, auth, _) {
-            return auth.isSignedIn
-                ? const HomeShell()
-                : const LoginScreen();
+            return auth.isSignedIn ? const HomeShell() : const LoginScreen();
           },
         ),
       ),

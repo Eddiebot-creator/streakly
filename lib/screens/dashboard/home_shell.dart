@@ -45,16 +45,19 @@ class _HomeShellState extends State<HomeShell> {
           body: Row(
             children: [
               NavigationRail(
-                backgroundColor: AppColors.card.withOpacity(.96),
+                backgroundColor: AppColors.surface,
                 selectedIndex: index,
                 onDestinationSelected: (v) => setState(() => index = v),
                 extended: c.maxWidth >= 1120,
                 leading: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 18),
-                  child: Image.asset('assets/icon/streakly_logo.png', width: 48, height: 48),
+                  child: Image.asset('assets/icon/streakly_logo.png',
+                      width: 48, height: 48),
                 ),
                 destinations: [
-                  for (final item in items) NavigationRailDestination(icon: Icon(item.$1), label: Text(item.$2)),
+                  for (final item in items)
+                    NavigationRailDestination(
+                        icon: Icon(item.$1), label: Text(item.$2)),
                 ],
               ),
               Expanded(child: pages[index]),
@@ -65,10 +68,12 @@ class _HomeShellState extends State<HomeShell> {
       return Scaffold(
         body: pages[index],
         bottomNavigationBar: NavigationBar(
+          backgroundColor: AppColors.surface,
           selectedIndex: index,
           onDestinationSelected: (v) => setState(() => index = v),
           destinations: [
-            for (final item in items.take(5)) NavigationDestination(icon: Icon(item.$1), label: item.$2),
+            for (final item in items.take(5))
+              NavigationDestination(icon: Icon(item.$1), label: item.$2),
           ],
         ),
       );

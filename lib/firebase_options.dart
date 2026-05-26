@@ -67,5 +67,4 @@ class DefaultFirebaseOptions {
     databaseURL: 'https://streakly-tj-2026-default-rtdb.firebaseio.com',
     storageBucket: 'streakly-tj-2026.firebasestorage.app',
   );
-
 }
