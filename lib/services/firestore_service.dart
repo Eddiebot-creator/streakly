@@ -53,6 +53,24 @@ class FirestoreService {
       'icon': habit.icon,
       'frequency': habit.frequency,
       'reminderTime': habit.reminderTime,
+      'customWeekdays': habit.customWeekdays,
+      'everyXDays': habit.everyXDays,
+      'monthlyDay': habit.monthlyDay,
+      'paused': habit.paused,
+      'archived': habit.archived,
+      'difficulty': habit.difficulty,
+      'priority': habit.priority,
+      'notes': habit.notes,
+      'goalType': habit.goalType,
+      'quantityTarget': habit.quantityTarget,
+      'timerMinutes': habit.timerMinutes,
+      'tags': habit.tags,
+      'streakFreezes': habit.streakFreezes,
+      'freezeDates': habit.freezeDates,
+      'reflectionNotes': habit.reflectionNotes,
+      'proofPhotoUrl': habit.proofPhotoUrl,
+      'voiceNoteUrl': habit.voiceNoteUrl,
+      'locationLabel': habit.locationLabel,
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
@@ -90,6 +108,14 @@ class FirestoreService {
     await db.collection('users').doc(uid).set({
       'totalStreak': FieldValue.increment(wasCompleted ? -1 : 1),
       'totalCompleted': FieldValue.increment(wasCompleted ? -1 : 1),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> replaceHabit(Habit habit) async {
+    if (habit.id.isEmpty) throw Exception('Cannot replace habit without ID.');
+    await db.collection('habits').doc(habit.id).set({
+      ...habit.toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }

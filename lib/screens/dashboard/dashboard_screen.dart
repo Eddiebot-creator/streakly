@@ -79,7 +79,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const _DashboardLoading()
                   else if (hp.error != null)
                     _ErrorCard(message: hp.error!, onRetry: hp.load)
-                  else if (hp.habits.isEmpty)
+                  else if (hp.activeHabits.isEmpty)
                     PremiumEmptyState(
                       icon: Icons.auto_awesome_rounded,
                       title: 'Your future routine starts here',
@@ -89,9 +89,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onAction: () => _openNewHabit(context),
                     )
                   else
-                    _HabitFocusList(habits: hp.habits.take(6).toList()),
+                    _HabitFocusList(habits: hp.dueTodayHabits.take(6).toList()),
                   const SizedBox(height: 26),
-                  if (hp.habits.isEmpty)
+                  if (hp.activeHabits.isEmpty)
                     _StarterTemplateStrip(onPick: (template) async {
                       await hp.addHabit(
                         template.title,
@@ -120,9 +120,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   String _focusSubtitle(HabitProvider hp) {
-    if (hp.habits.isEmpty) return 'Set up your first streak-worthy action.';
+    if (hp.activeHabits.isEmpty) {
+      return 'Set up your first streak-worthy action.';
+    }
     if (hp.progress == 1) return 'Perfect day. You protected every streak.';
-    return '${hp.habits.length - hp.completedToday} habit(s) left to complete today.';
+    return '${hp.dueTodayHabits.length - hp.completedToday} habit(s) left to complete today.';
   }
 
   void _openNewHabit(BuildContext context) {
@@ -305,7 +307,7 @@ class _CommandCenter extends StatelessWidget {
                         _CommandPill(
                           icon: Icons.check_circle_rounded,
                           label:
-                              '${hp.completedToday}/${hp.habits.length} done',
+                              '${hp.completedToday}/${hp.dueTodayHabits.length} done',
                         ),
                         _CommandPill(
                           icon: Icons.local_fire_department_rounded,
@@ -332,14 +334,14 @@ class _CommandCenter extends StatelessWidget {
   }
 
   String get _headline {
-    if (hp.habits.isEmpty) return 'Design your first winning day.';
+    if (hp.activeHabits.isEmpty) return 'Design your first winning day.';
     if (hp.progress == 1) return 'Perfect day secured.';
     if (hp.completedToday == 0) return 'Start with the easiest win.';
     return 'Momentum is active. Finish strong.';
   }
 
   String get _body {
-    if (hp.habits.isEmpty) {
+    if (hp.activeHabits.isEmpty) {
       return 'Pick a starter habit, set a reminder, and let Streakly turn progress into a visible streak.';
     }
     if (hp.progress == 1) {
@@ -687,8 +689,12 @@ class _AchievementRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badges = [
-      (Icons.flag_rounded, 'Starter', hp.habits.isNotEmpty),
-      (Icons.bolt_rounded, 'Perfect', hp.progress == 1 && hp.habits.isNotEmpty),
+      (Icons.flag_rounded, 'Starter', hp.activeHabits.isNotEmpty),
+      (
+        Icons.bolt_rounded,
+        'Perfect',
+        hp.progress == 1 && hp.activeHabits.isNotEmpty
+      ),
       (Icons.local_fire_department_rounded, 'Streak 7', hp.bestStreak >= 7),
     ];
     return Wrap(

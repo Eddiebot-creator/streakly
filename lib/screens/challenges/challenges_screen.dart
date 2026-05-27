@@ -13,8 +13,9 @@ class ChallengesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hp = context.watch<HabitProvider>();
-    final xp =
-        hp.totalCompleted * 12 + hp.bestStreak * 30 + hp.habits.length * 20;
+    final xp = hp.totalCompleted * 12 +
+        hp.bestStreak * 30 +
+        hp.activeHabits.length * 20;
     final league = _leagueFor(xp);
     final challenges = [
       _Challenge(
@@ -29,12 +30,19 @@ class ChallengesScreen extends StatelessWidget {
           'Perfect Day',
           'Complete every habit today',
           Icons.verified_rounded,
-          hp.habits.isNotEmpty && hp.completedToday == hp.habits.length,
+          hp.dueTodayHabits.isNotEmpty &&
+              hp.completedToday == hp.dueTodayHabits.length,
           hp.completedToday,
-          hp.habits.isEmpty ? 1 : hp.habits.length,
+          hp.dueTodayHabits.isEmpty ? 1 : hp.dueTodayHabits.length,
           90),
-      _Challenge('Habit Builder', 'Create 5 habits', Icons.add_task_rounded,
-          hp.habits.length >= 5, hp.habits.length.clamp(0, 5), 5, 120),
+      _Challenge(
+          'Habit Builder',
+          'Create 5 habits',
+          Icons.add_task_rounded,
+          hp.activeHabits.length >= 5,
+          hp.activeHabits.length.clamp(0, 5),
+          5,
+          120),
       _Challenge(
           'Streak Master',
           'Reach a 10-day best streak',
