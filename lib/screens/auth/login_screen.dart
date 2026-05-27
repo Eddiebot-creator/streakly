@@ -13,14 +13,19 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final formKey = GlobalKey<FormState>();
   final name = TextEditingController();
   final email = TextEditingController();
   final pass = TextEditingController();
   bool signUp = false;
   bool busy = false;
+  bool obscurePassword = true;
   String? error;
 
   Future<void> _submit() async {
+    if (!(formKey.currentState?.validate() ?? false)) {
+      return;
+    }
     setState(() {
       busy = true;
       error = null;
@@ -34,6 +39,14 @@ class _LoginScreenState extends State<LoginScreen> {
       busy = false;
       error = result;
     });
+  }
+
+  @override
+  void dispose() {
+    name.dispose();
+    email.dispose();
+    pass.dispose();
+    super.dispose();
   }
 
   @override
@@ -111,75 +124,101 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _formCard() {
-    return AppCard(
-      padding: const EdgeInsets.all(24),
-      color: AppColors.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(signUp ? 'Create account' : 'Welcome back',
-              style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textStrong)),
-          const SizedBox(height: 6),
-          Text(
-              signUp
-                  ? 'Start your first streak today.'
-                  : 'Sign in to continue your streak.',
-              style: const TextStyle(color: AppColors.muted)),
-          const SizedBox(height: 22),
-          if (signUp) ...[
-            TextField(
-                controller: name,
-                textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                    labelText: 'Full name',
-                    prefixIcon: Icon(Icons.person_outline))),
-            const SizedBox(height: 12),
-          ],
-          TextField(
-              controller: email,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                  labelText: 'Email address',
-                  prefixIcon: Icon(Icons.email_outlined))),
-          const SizedBox(height: 12),
-          TextField(
-              controller: pass,
-              obscureText: true,
-              onSubmitted: (_) => _submit(),
-              decoration: const InputDecoration(
-                  labelText: 'Password', prefixIcon: Icon(Icons.lock_outline))),
-          if (error != null) ...[
-            const SizedBox(height: 12),
-            Text(error!,
+    return Form(
+      key: formKey,
+      child: AppCard(
+        padding: const EdgeInsets.all(24),
+        color: AppColors.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(signUp ? 'Create account' : 'Welcome back',
                 style: const TextStyle(
-                    color: AppColors.danger, fontWeight: FontWeight.w700)),
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textStrong)),
+            const SizedBox(height: 6),
+            Text(
+                signUp
+                    ? 'Start your first streak today.'
+                    : 'Sign in to continue your streak.',
+                style: const TextStyle(color: AppColors.muted)),
+            const SizedBox(height: 22),
+            if (signUp) ...[
+              TextField(
+                  controller: name,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                      labelText: 'Full name',
+                      prefixIcon: Icon(Icons.person_outline))),
+              const SizedBox(height: 12),
+            ],
+            TextFormField(
+                controller: email,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                validator: (value) {
+                  final input = value?.trim() ?? '';
+                  if (input.isEmpty) return 'Enter your email address';
+                  if (!input.contains('@') || !input.contains('.')) {
+                    return 'Enter a valid email address';
+                  }
+                  return null;
+                },
+                decoration: const InputDecoration(
+                    labelText: 'Email address',
+                    prefixIcon: Icon(Icons.email_outlined))),
+            const SizedBox(height: 12),
+            TextFormField(
+                controller: pass,
+                obscureText: obscurePassword,
+                onFieldSubmitted: (_) => _submit(),
+                validator: (value) {
+                  final input = value ?? '';
+                  if (input.isEmpty) return 'Enter your password';
+                  if (input.length < 6) return 'Use at least 6 characters';
+                  return null;
+                },
+                decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      onPressed: () =>
+                          setState(() => obscurePassword = !obscurePassword),
+                      icon: Icon(obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                    ))),
+            if (error != null) ...[
+              const SizedBox(height: 12),
+              Text(error!,
+                  style: const TextStyle(
+                      color: AppColors.danger, fontWeight: FontWeight.w700)),
+            ],
+            const SizedBox(height: 18),
+            ElevatedButton(
+              onPressed: busy ? null : _submit,
+              child: busy
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text(signUp ? 'Create Account' : 'Sign In'),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => setState(() {
+                signUp = !signUp;
+                error = null;
+                obscurePassword = true;
+              }),
+              child: Text(signUp
+                  ? 'Already have an account? Sign in'
+                  : 'New here? Create account'),
+            ),
           ],
-          const SizedBox(height: 18),
-          ElevatedButton(
-            onPressed: busy ? null : _submit,
-            child: busy
-                ? const SizedBox(
-                    height: 22,
-                    width: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(signUp ? 'Create Account' : 'Sign In'),
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => setState(() {
-              signUp = !signUp;
-              error = null;
-            }),
-            child: Text(signUp
-                ? 'Already have an account? Sign in'
-                : 'New here? Create account'),
-          ),
-        ],
+        ),
       ),
     );
   }
