@@ -10,8 +10,42 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/premium_ui.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool smartReminders = true;
+  bool haptics = true;
+  bool reducedMotion = false;
+  bool compactMode = false;
+  bool analyticsOptIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      smartReminders = prefs.getBool('streakly_smart_reminders') ?? true;
+      haptics = prefs.getBool('streakly_haptics') ?? true;
+      reducedMotion = prefs.getBool('streakly_reduced_motion') ?? false;
+      compactMode = prefs.getBool('streakly_compact_mode') ?? false;
+      analyticsOptIn = prefs.getBool('streakly_analytics_opt_in') ?? false;
+    });
+  }
+
+  Future<void> _savePref(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,6 +204,65 @@ class SettingsScreen extends StatelessWidget {
                   subtitle: 'Notifications, onboarding, appearance, and help.',
                 ),
                 const SizedBox(height: 10),
+                AppCard(
+                  child: Column(
+                    children: [
+                      _PreferenceSwitch(
+                        icon: Icons.notifications_active_outlined,
+                        title: 'Smart reminders',
+                        subtitle:
+                            'Use habit timing signals for reminder suggestions.',
+                        value: smartReminders,
+                        onChanged: (value) {
+                          setState(() => smartReminders = value);
+                          _savePref('streakly_smart_reminders', value);
+                        },
+                      ),
+                      _PreferenceSwitch(
+                        icon: Icons.vibration_rounded,
+                        title: 'Sound and haptics',
+                        subtitle: 'Allow tactile feedback for completions.',
+                        value: haptics,
+                        onChanged: (value) {
+                          setState(() => haptics = value);
+                          _savePref('streakly_haptics', value);
+                        },
+                      ),
+                      _PreferenceSwitch(
+                        icon: Icons.motion_photos_off_outlined,
+                        title: 'Reduced motion',
+                        subtitle: 'Prefer calmer transitions and effects.',
+                        value: reducedMotion,
+                        onChanged: (value) {
+                          setState(() => reducedMotion = value);
+                          _savePref('streakly_reduced_motion', value);
+                        },
+                      ),
+                      _PreferenceSwitch(
+                        icon: Icons.view_agenda_outlined,
+                        title: 'Compact mode',
+                        subtitle:
+                            'Save the preference for denser power-user layouts.',
+                        value: compactMode,
+                        onChanged: (value) {
+                          setState(() => compactMode = value);
+                          _savePref('streakly_compact_mode', value);
+                        },
+                      ),
+                      _PreferenceSwitch(
+                        icon: Icons.query_stats_rounded,
+                        title: 'Product analytics opt-in',
+                        subtitle: 'Let future releases measure feature health.',
+                        value: analyticsOptIn,
+                        onChanged: (value) {
+                          setState(() => analyticsOptIn = value);
+                          _savePref('streakly_analytics_opt_in', value);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
                 _SettingTile(
                   icon: Icons.notifications_active_outlined,
                   title: 'Test Notification',
@@ -372,6 +465,51 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PreferenceSwitch extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _PreferenceSwitch({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      secondary: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: .10),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(icon, color: AppColors.primary),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: AppColors.textStrong,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(color: AppColors.muted, fontSize: 12),
+      ),
+      value: value,
+      onChanged: onChanged,
     );
   }
 }
