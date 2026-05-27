@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -8,6 +9,7 @@ import 'providers/auth_provider.dart';
 import 'providers/habit_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/home_shell.dart';
+import 'screens/onboarding/onboarding_screen.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 
@@ -103,10 +105,48 @@ class StreaklyApp extends StatelessWidget {
         theme: AppTheme.light,
         home: Consumer<StreaklyAuthProvider>(
           builder: (context, auth, _) {
-            return auth.isSignedIn ? const HomeShell() : const LoginScreen();
+            return auth.isSignedIn
+                ? const OnboardingGate()
+                : const LoginScreen();
           },
         ),
       ),
     );
+  }
+}
+
+class OnboardingGate extends StatefulWidget {
+  const OnboardingGate({super.key});
+
+  @override
+  State<OnboardingGate> createState() => _OnboardingGateState();
+}
+
+class _OnboardingGateState extends State<OnboardingGate> {
+  bool? complete;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() =>
+          complete = prefs.getBool('streakly_onboarding_complete') ?? false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (complete == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (complete == true) {
+      return const HomeShell();
+    }
+    return OnboardingScreen(onFinished: () => setState(() => complete = true));
   }
 }

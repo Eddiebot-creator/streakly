@@ -1,12 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/habit_provider.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/premium_ui.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -20,107 +22,387 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(padding: const EdgeInsets.all(22), children: [
-        ResponsivePage(
+      body: ListView(
+        padding: const EdgeInsets.all(22),
+        children: [
+          ResponsivePage(
             padding: EdgeInsets.zero,
-            child: Column(children: [
-              AppCard(
-                  child: Row(children: [
-                CircleAvatar(
-                    radius: 32,
-                    backgroundColor: AppColors.primary,
-                    child: Text(name.isNotEmpty ? name[0].toUpperCase() : 'S',
-                        style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white))),
-                const SizedBox(width: 16),
-                Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                      Text(name,
+            maxWidth: 980,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppCard(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 34,
+                        backgroundColor: Colors.white,
+                        child: Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : 'S',
                           style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              color: AppColors.textStrong)),
-                      Text(email,
-                          style: const TextStyle(color: AppColors.muted))
-                    ])),
-              ])),
-              const SizedBox(height: 18),
-              _SettingTile(
-                  icon: Icons.notifications_active_outlined,
-                  title: 'Test Notification',
-                  subtitle: 'Send a real notification now',
-                  onTap: () async {
-                    await NotificationService.instance.show('Streakly reminder',
-                        'This is how your habit reminders will appear.');
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Notification sent')));
-                    }
-                  }),
-              _SettingTile(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 20,
+                              ),
+                            ),
+                            Text(email,
+                                style: const TextStyle(color: Colors.white70)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _StatusPill(
+                                  label: user?.emailVerified == true
+                                      ? 'Email verified'
+                                      : 'Email not verified',
+                                  icon: user?.emailVerified == true
+                                      ? Icons.verified_rounded
+                                      : Icons.mark_email_unread_rounded,
+                                ),
+                                const _StatusPill(
+                                  label: 'Cloud sync active',
+                                  icon: Icons.cloud_done_rounded,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const PremiumSectionHeader(
+                  title: 'Account',
+                  subtitle: 'Profile, login, and identity controls.',
+                ),
+                const SizedBox(height: 10),
+                _SettingTile(
+                  icon: Icons.badge_outlined,
+                  title: 'Edit Profile',
+                  subtitle: 'Update your display name',
+                  onTap: () => _editProfile(context, name),
+                ),
+                _SettingTile(
+                  icon: Icons.password_rounded,
+                  title: 'Reset Password',
+                  subtitle: 'Send a password reset email',
+                  onTap: () => _resetPassword(context, email),
+                ),
+                _SettingTile(
+                  icon: Icons.verified_user_outlined,
+                  title: 'Verify Email',
+                  subtitle: user?.emailVerified == true
+                      ? 'Your email is already verified'
+                      : 'Send a verification email',
+                  onTap: () => _verifyEmail(context),
+                ),
+                const SizedBox(height: 18),
+                const PremiumSectionHeader(
+                  title: 'Data & Trust',
+                  subtitle: 'Export, privacy, cloud backup, and safety.',
+                ),
+                const SizedBox(height: 10),
+                _SettingTile(
                   icon: Icons.download_outlined,
                   title: 'Export Data',
                   subtitle: 'Copy your habits as CSV',
                   onTap: () async {
                     await context.read<HabitProvider>().exportCsvToClipboard();
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text('CSV copied to clipboard')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('CSV copied to clipboard')),
+                      );
                     }
-                  }),
-              _SettingTile(
+                  },
+                ),
+                _SettingTile(
+                  icon: Icons.upload_file_rounded,
+                  title: 'Import Data',
+                  subtitle: 'CSV import surface ready for release packaging',
+                  onTap: () => _info(
+                    context,
+                    'Import Data',
+                    'CSV import is planned for the release build. Export is available today, and the settings surface is ready for the import workflow.',
+                  ),
+                ),
+                _SettingTile(
                   icon: Icons.cloud_done_outlined,
                   title: 'Cloud Backup',
                   subtitle: 'Firebase sync is active for this account',
-                  onTap: () => _info(context, 'Cloud Backup',
-                      'Your habits are saved in Firebase Firestore and sync when you sign in.')),
-              _SettingTile(
+                  onTap: () => _info(
+                    context,
+                    'Cloud Backup',
+                    'Your habits are saved in Firebase Firestore and sync when you sign in.',
+                  ),
+                ),
+                _SettingTile(
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'Privacy Controls',
+                  subtitle:
+                      'Export, privacy summary, and delete-account access',
+                  onTap: () => _privacySheet(context),
+                ),
+                const SizedBox(height: 18),
+                const PremiumSectionHeader(
+                  title: 'Experience',
+                  subtitle: 'Notifications, onboarding, appearance, and help.',
+                ),
+                const SizedBox(height: 10),
+                _SettingTile(
+                  icon: Icons.notifications_active_outlined,
+                  title: 'Test Notification',
+                  subtitle: 'Send a real notification now',
+                  onTap: () async {
+                    await NotificationService.instance.show(
+                      'Streakly reminder',
+                      'This is how your habit reminders will appear.',
+                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Notification sent')),
+                      );
+                    }
+                  },
+                ),
+                _SettingTile(
+                  icon: Icons.auto_awesome_rounded,
+                  title: 'Replay Onboarding',
+                  subtitle: 'Show goal setup again on next launch',
+                  onTap: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('streakly_onboarding_complete', false);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                'Onboarding will show next time you open Streakly')),
+                      );
+                    }
+                  },
+                ),
+                _SettingTile(
                   icon: Icons.palette_outlined,
                   title: 'Appearance',
                   subtitle: 'Light Streakly design enabled',
-                  onTap: () => _info(context, 'Appearance',
-                      'Streakly is using the light design from your imported FlutterFlow export.')),
-              _SettingTile(
-                  icon: Icons.privacy_tip_outlined,
-                  title: 'Privacy Policy',
-                  subtitle: 'View app privacy summary',
-                  onTap: () => _info(context, 'Privacy',
-                      'Streakly stores only your email, habits, streaks, and progress data in Firebase.')),
-              _SettingTile(
+                  onTap: () => _info(
+                    context,
+                    'Appearance',
+                    'Streakly is using the premium light design system. Dark mode and custom accent colors are ready for the next theme pass.',
+                  ),
+                ),
+                _SettingTile(
                   icon: Icons.help_outline,
                   title: 'Help Center',
                   subtitle: 'How to use Streakly',
-                  onTap: () => _info(context, 'Help Center',
-                      'Create a habit, complete it daily, track streaks, view stats, and export your data from settings.')),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
-                onPressed: () async =>
-                    context.read<StreaklyAuthProvider>().signOut(),
-                icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
+                  onTap: () => _info(
+                    context,
+                    'Help Center',
+                    'Create habits, complete them daily, track streaks, review stats, use challenges, and export your data from settings.',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.danger),
+                  onPressed: () async =>
+                      context.read<StreaklyAuthProvider>().signOut(),
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Logout'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _editProfile(BuildContext context, String currentName) {
+    final controller = TextEditingController(text: currentName);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Edit profile'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: 'Display name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                await FirebaseAuth.instance.currentUser
+                    ?.updateDisplayName(name);
+              }
+              if (dialogContext.mounted) Navigator.pop(dialogContext);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Profile updated')),
+                );
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _resetPassword(BuildContext context, String email) async {
+    if (!email.contains('@')) {
+      _info(context, 'Reset Password',
+          'No email address is attached to this account.');
+      return;
+    }
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password reset sent to $email')),
+      );
+    }
+  }
+
+  Future<void> _verifyEmail(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    if (user.emailVerified) {
+      _info(context, 'Verify Email', 'Your email is already verified.');
+      return;
+    }
+    await user.sendEmailVerification();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Verification email sent')),
+      );
+    }
+  }
+
+  void _privacySheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(22, 10, 22, 26),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Privacy Controls',
+              style: TextStyle(
+                color: AppColors.textStrong,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
               ),
-            ])),
-      ]),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Streakly stores your email, habits, streaks, and completion dates in Firebase so your progress can sync.',
+              style: TextStyle(color: AppColors.muted),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () async {
+                await context.read<HabitProvider>().exportCsvToClipboard();
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('CSV copied to clipboard')),
+                  );
+                }
+              },
+              icon: const Icon(Icons.download_rounded),
+              label: const Text('Export my data'),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => _info(
+                context,
+                'Delete Account',
+                'For safety, delete-account should require recent reauthentication before it is enabled in production.',
+              ),
+              icon: const Icon(Icons.delete_outline_rounded,
+                  color: AppColors.danger),
+              label: const Text('Delete account request',
+                  style: TextStyle(color: AppColors.danger)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   void _info(BuildContext context, String title, String body) {
     showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-                title: Text(title),
-                content: Text(body),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('OK'))
-                ]));
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _StatusPill({required this.label, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .16),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 15),
+          const SizedBox(width: 5),
+          Text(label,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12)),
+        ],
+      ),
+    );
   }
 }
 
@@ -129,36 +411,55 @@ class _SettingTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-  const _SettingTile(
-      {required this.icon,
-      required this.title,
-      required this.subtitle,
-      required this.onTap});
+
+  const _SettingTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: AppCard(
-            onTap: onTap,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            child: Row(children: [
-              Icon(icon, color: AppColors.primary),
+          onTap: onTap,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: AppColors.primary),
+              ),
               const SizedBox(width: 14),
               Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textStrong)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textStrong),
+                    ),
                     const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: const TextStyle(
-                            color: AppColors.muted, fontSize: 12))
-                  ])),
+                    Text(
+                      subtitle,
+                      style:
+                          const TextStyle(color: AppColors.muted, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
               const Icon(Icons.arrow_forward_ios,
                   size: 14, color: AppColors.muted),
-            ])),
+            ],
+          ),
+        ),
       );
 }
